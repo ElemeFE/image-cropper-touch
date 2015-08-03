@@ -1,0 +1,42 @@
+.cropper {
+  position: relative;
+  overflow: hidden;
+}
+
+.cropper .crop-box {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate3d(-50%, -50%, 0);
+  transform: translate3d(-50%, -50%, 0);
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  z-index: 101;
+}
+
+.cropper .cover {
+  position: absolute;
+  background: rgba(0,0,0,0.5);
+  width: 100%;
+  z-index: 100;
+}
+
+.cropper .cover-start {
+  top: 0;
+}
+
+.cropper .cover-end {
+  bottom: 0;
+}
+
+.cropper-horizontal .cover {
+  height: 100%;
+}
+
+.cropper-horizontal .cover-start {
+  left: 0;
+}
+
+.cropper-horizontal .cover-end {
+  right: 0;
+}

@@ -1,0 +1,14 @@
+{
+  "name": "image-cropper-touch",
+  "main": "dist/cropper.js",
+  "version": "0.1.0",
+  "authors": [
+    "long.zhang <long.zhang@ele.me>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "demo",
+    "test",
+    "examples"
+  ]
+}

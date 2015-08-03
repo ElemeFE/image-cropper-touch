@@ -1,0 +1,27 @@
+{
+  "name": "image-cropper-touch",
+  "version": "0.1.0",
+  "description": "A image cropper for mobile device.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ElemeFE/image-cropper-touch.git"
+  },
+  "keywords": [
+    "crop",
+    "cropper",
+    "image",
+    "mobile",
+    "touch"
+  ],
+  "main": "src/index.js",
+  "author": "long.zhang",
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "^9.0.8",
+    "watchify": "^3.3.0"
+  },
+  "scripts": {
+    "build": "browserify src/index.js -o dist/cropper.js",
+    "watch": "watchify src/index.js -o dist/cropper.js -dv"
+  }
+}
