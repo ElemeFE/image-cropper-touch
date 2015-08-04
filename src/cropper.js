@@ -455,14 +455,18 @@ Cropper.prototype = {
     cropBox.addEventListener('touchend', this.onTouchEnd.bind(this));
   },
 
-  getCroppedImage: function() {
+  getCroppedImage: function(width) {
     if (!this.image) return null;
 
     var imageState = this.imageState;
     var cropBoxRect = this.cropBoxRect;
     var scale = imageState.scale;
 
-    var canvasSize = cropBoxRect.width * 2;
+    var canvasSize = width;
+
+    if (!canvasSize) {
+      canvasSize = cropBoxRect.width * 2;
+    }
 
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');

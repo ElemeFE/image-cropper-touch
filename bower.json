@@ -1,7 +1,7 @@
 {
   "name": "image-cropper-touch",
   "main": "dist/cropper.js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "authors": [
     "long.zhang <long.zhang@ele.me>"
   ],
