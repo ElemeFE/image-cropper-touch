@@ -21,6 +21,9 @@ Cropper.prototype = {
     var self = this;
     self.imageLoading = true;
     self.image = src;
+
+    self.resetSize();
+
     var image = new Image();
 
     image.onload = function() {
@@ -30,6 +33,8 @@ Cropper.prototype = {
 
       var originalWidth = image.width;
       var originalHeight = image.height;
+
+      self.imageState.left = self.imageState.top = 0;
 
       self.imageState.width = originalWidth;
       self.imageState.height = originalHeight;

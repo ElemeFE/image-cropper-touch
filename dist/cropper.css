@@ -40,3 +40,7 @@
 .cropper-horizontal .cover-end {
   right: 0;
 }
+
+.cropper img {
+  max-width: none;
+}
