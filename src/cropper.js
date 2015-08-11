@@ -1,10 +1,12 @@
 var util = require('./util');
+var EXIF = require('exif-js');
 
 var translateElement = util.translateElement;
 var getElementTranslate = util.getElementTranslate;
 var getDistance = util.getTouchDistance;
 var translate = util.translate;
 var dataURItoBlob = util.dataURItoBlob;
+var URLApi = window.createObjectURL && window || window.URL && URL.revokeObjectURL && URL || window.webkitURL && webkitURL;
 
 var Cropper = function() {
   if (!('ontouchstart' in window)) {
@@ -17,53 +19,73 @@ var Cropper = function() {
 Cropper.prototype = {
   constructor: Cropper,
 
-  setImage: function(src) {
+  setImage: function(src, file) {
     var self = this;
     self.imageLoading = true;
     self.image = src;
 
     self.resetSize();
 
+    var url;
+    if (file) {
+      url = URLApi.createObjectURL(file);
+    }
+
     var image = new Image();
 
     image.onload = function() {
       var selfImage = self.refs.image;
 
-      selfImage.src = src;
+      loadImage.parseMetaData(file, function(data) {
+        var orientation;
+        if (data.exif) {
+          orientation = data.exif[0x0112];
+        }
 
-      var originalWidth = image.width;
-      var originalHeight = image.height;
+        selfImage.src = src;
+        self.orientation = orientation;
 
-      self.imageState.left = self.imageState.top = 0;
+        var originalWidth, originalHeight;
 
-      self.imageState.width = originalWidth;
-      self.imageState.height = originalHeight;
+        self.imageState.left = self.imageState.top = 0;
 
-      self.initScale();
+        if ("5678".indexOf(orientation) > -1) {
+          originalWidth = image.height;
+          originalHeight = image.width;
+        } else {
+          originalWidth = image.width;
+          originalHeight = image.height;
+        }
 
-      var minScale = self.scaleRange[0];
-      var imageWidth = minScale * originalWidth;
-      var imageHeight = minScale * originalHeight;
-      selfImage.style.width = imageWidth + 'px';
-      selfImage.style.height = imageHeight + 'px';
+        self.imageState.width = originalWidth;
+        self.imageState.height = originalHeight;
 
-      var imageLeft, imageTop;
+        self.initScale();
 
-      var cropBoxRect = self.cropBoxRect;
+        var minScale = self.scaleRange[0];
+        var imageWidth = minScale * originalWidth;
+        var imageHeight = minScale * originalHeight;
+        selfImage.style.width = imageWidth + 'px';
+        selfImage.style.height = imageHeight + 'px';
 
-      if (originalWidth > originalHeight) {
-        imageLeft = (cropBoxRect.width - imageWidth) / 2 +cropBoxRect.left;
-        imageTop = cropBoxRect.top;
-      } else {
-        imageLeft = cropBoxRect.left;
-        imageTop = (cropBoxRect.height - imageHeight) / 2 + cropBoxRect.top;
-      }
+        var imageLeft, imageTop;
 
-      self.moveImage(imageLeft, imageTop);
+        var cropBoxRect = self.cropBoxRect;
 
-      self.imageLoading = false;
+        if (originalWidth > originalHeight) {
+          imageLeft = (cropBoxRect.width - imageWidth) / 2 +cropBoxRect.left;
+          imageTop = cropBoxRect.top;
+        } else {
+          imageLeft = cropBoxRect.left;
+          imageTop = (cropBoxRect.height - imageHeight) / 2 + cropBoxRect.top;
+        }
+
+        self.moveImage(imageLeft, imageTop);
+
+        self.imageLoading = false;
+      });
     };
-    image.src = src;
+    image.src = url || src;
   },
 
   getFocalPoint: function(event) {
@@ -455,9 +477,7 @@ Cropper.prototype = {
     cropBox.addEventListener('touchend', this.onTouchEnd.bind(this));
   },
 
-  getCroppedImage: function(width) {
-    if (!this.image) return null;
-
+  createBase64: function (callback, width) {
     var imageState = this.imageState;
     var cropBoxRect = this.cropBoxRect;
     var scale = imageState.scale;
@@ -468,23 +488,56 @@ Cropper.prototype = {
       canvasSize = cropBoxRect.width * 2;
     }
 
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    canvas.width = canvas.height = canvasSize;
-
     var imageLeft = Math.round((cropBoxRect.left - imageState.left) / scale);
-    var imageTop = Math.round((cropBoxRect.top  - imageState.top) / scale);
+    var imageTop = Math.round((cropBoxRect.top - imageState.top) / scale);
     var imageSize = Math.floor(cropBoxRect.width / scale);
 
-    context.drawImage(this.refs.image, imageLeft, imageTop, imageSize, imageSize, 0, 0, canvasSize, canvasSize);
+    var orientation = this.orientation;
+    var image = this.refs.image;
 
-    var dataURL = canvas.toDataURL();
+    var cropImage = new Image();
+    cropImage.src = image.src;
 
-    return {
-      file: canvas.toBlob ? canvas.toBlob() : dataURItoBlob(dataURL),
-      dataUrl: dataURL,
-      size: canvasSize
+    cropImage.onload = function() {
+      var resultCanvas = loadImage.scale(cropImage, {
+        canvas: true,
+        left: imageLeft,
+        top: imageTop,
+        sourceWidth: imageSize,
+        sourceHeight: imageSize,
+        orientation: orientation,
+        maxWidth: canvasSize,
+        maxHeight: canvasSize
+      });
+
+      var dataURL = resultCanvas.toDataURL();
+      if (typeof callback === 'function') {
+        callback({
+          canvasSize: canvasSize,
+          canvas: resultCanvas,
+          dataURL: dataURL
+        });
+      }
     };
+  },
+
+  getCroppedImage: function(callback, width) {
+    if (!this.image) return null;
+
+    this.createBase64(function(result) {
+      var canvasSize = result.canvasSize;
+      var canvas = result.canvas;
+      var dataURL = result.dataURL;
+
+      if (typeof callback === 'function') {
+        callback({
+          file: canvas.toBlob ? canvas.toBlob() : dataURItoBlob(dataURL),
+          dataUrl: dataURL,
+          oDataURL: result.oDataURL,
+          size: canvasSize
+        });
+      }
+    }, width);
   }
 };
 

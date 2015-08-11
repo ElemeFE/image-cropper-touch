@@ -16,6 +16,9 @@
   "main": "src/index.js",
   "author": "long.zhang",
   "license": "MIT",
+  "dependencies": {
+    "blueimp-load-image": "^1.13.1"
+  },
   "devDependencies": {
     "browserify": "^9.0.8",
     "watchify": "^3.3.0"

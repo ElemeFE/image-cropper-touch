@@ -11,16 +11,36 @@ var once = function(el, event, fn) {
 
 module.exports = {
   dataURItoBlob: function (dataURI) {
-    var binary = atob(dataURI.split(',')[1]);
-    var array = [];
+    var binaryString = atob(dataURI.split(',')[1]);
+    var arrayBuffer = new ArrayBuffer(binaryString.length);
+    var intArray = new Uint8Array(arrayBuffer);
 
-    for (var i = 0, j = binary.length; i < j; i++) {
-      array.push(binary.charCodeAt(i));
+    for (var i = 0, j = binaryString.length; i < j; i++) {
+      intArray[i] = binaryString.charCodeAt(i);
     }
 
-    return new Blob([new Uint8Array(array)], {
-      type: dataURI.slice(5, dataURI.indexOf(';'))
-    });
+    var data = [intArray];
+    var type = 'image/png';
+
+    var result;
+
+    try {
+      result = new Blob(data, { type: type });
+    } catch(error) {
+      // TypeError old chrome and FF
+      window.BlobBuilder = window.BlobBuilder ||
+        window.WebKitBlobBuilder ||
+        window.MozBlobBuilder ||
+        window.MSBlobBuilder;
+
+      if(error.name == 'TypeError' && window.BlobBuilder){
+        var builder = new BlobBuilder();
+        builder.append(arrayBuffer);
+        result = builder.getBlob(type);
+      }
+    }
+
+    return result;
   },
   getTouchDistance: function(event) {
     var finger = event.touches[0];
