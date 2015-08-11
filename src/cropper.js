@@ -1,5 +1,4 @@
 var util = require('./util');
-var EXIF = require('exif-js');
 
 var translateElement = util.translateElement;
 var getElementTranslate = util.getElementTranslate;
